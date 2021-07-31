@@ -48,11 +48,17 @@ public class SetSlot extends AbstractPacket {
     MAPPING.put(MINECRAFT_1_16_3, 0x15);
     MAPPING.put(MINECRAFT_1_16_4, 0x15);
     MAPPING.put(MINECRAFT_1_17, 0x16);
+    MAPPING.put(MINECRAFT_1_17_1, 0x16);
   }
 
   private byte windowId;
   private short slot;
   private ItemStack stack;
+
+  /**
+   * @since 1.7.1-SNAPSHOT protocol 756
+   */
+  private int stateId;
 
   public SetSlot(final byte windowId, final short slot, final ItemStack stack) {
     Preconditions.checkNotNull(stack, "The stack cannot be null!");
@@ -74,6 +80,9 @@ public class SetSlot extends AbstractPacket {
   public void read(final ByteBuf buf, final Direction direction, final int protocolVersion) {
     Preconditions.checkNotNull(buf, "The buf cannot be null!");
     windowId = buf.readByte();
+    if (protocolVersion >= MINECRAFT_1_17_1) {
+      stateId = readVarInt(buf);
+    }
     slot = buf.readShort();
     stack = ItemStack.read(buf, protocolVersion);
     BufferUtil.finishBuffer(this, buf, direction, protocolVersion);
@@ -83,6 +92,9 @@ public class SetSlot extends AbstractPacket {
   public void write(final ByteBuf buf, final Direction direction, final int protocolVersion) {
     Preconditions.checkNotNull(buf, "The buf cannot be null!");
     buf.writeByte(windowId);
+    if (protocolVersion >= MINECRAFT_1_17_1) {
+      writeVarInt(stateId, buf);
+    }
     buf.writeShort(slot);
     if (stack == null)
       buf.writeShort(-1);

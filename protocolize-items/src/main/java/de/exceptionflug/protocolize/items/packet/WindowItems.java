@@ -50,10 +50,21 @@ public class WindowItems extends AbstractPacket {
     MAPPING.put(MINECRAFT_1_16_3, 0x13);
     MAPPING.put(MINECRAFT_1_16_4, 0x13);
     MAPPING.put(MINECRAFT_1_17, 0x14);
+    MAPPING.put(MINECRAFT_1_17_1, 0x14);
   }
 
   private short windowId;
   private List<ItemStack> items = new ArrayList<>();
+
+  /**
+   * @since 1.7.1-SNAPSHOT protocol 756
+   */
+  private ItemStack cursorItem = ItemStack.NO_DATA;
+
+  /**
+   * @since 1.7.1-SNAPSHOT protocol 756
+   */
+  private int stateId;
 
   public WindowItems(final short windowId, final List<ItemStack> items) {
     this.windowId = windowId;
@@ -66,21 +77,38 @@ public class WindowItems extends AbstractPacket {
   @Override
   public void write(final ByteBuf buf, final Direction direction, final int protocolVersion) {
     buf.writeByte(windowId & 0xFF);
-    buf.writeShort(items.size());
+    if (protocolVersion >= MINECRAFT_1_17_1) {
+      writeVarInt(stateId, buf);
+      writeVarInt(items.size(), buf);
+    } else {
+      buf.writeShort(items.size());
+    }
     for (ItemStack item : items) {
       if (item == null)
         item = ItemStack.NO_DATA;
       item.write(buf, protocolVersion);
+    }
+    if (protocolVersion >= MINECRAFT_1_17_1) {
+      cursorItem.write(buf, protocolVersion);
     }
   }
 
   @Override
   public void read(final ByteBuf buf, final Direction direction, final int protocolVersion) {
     windowId = buf.readUnsignedByte();
-    final short count = buf.readShort();
+    final int count;
+    if (protocolVersion >= MINECRAFT_1_17_1) {
+      stateId = readVarInt(buf);
+      count = readVarInt(buf);
+    } else {
+      count = buf.readShort();
+    }
     for (int i = 0; i < count; i++) {
       final ItemStack read = ItemStack.read(buf, protocolVersion);
       items.add(read);
+    }
+    if (protocolVersion >= MINECRAFT_1_17_1) {
+      cursorItem = ItemStack.read(buf, protocolVersion);
     }
     BufferUtil.finishBuffer(this, buf, direction, protocolVersion);
   }
@@ -136,6 +164,7 @@ public class WindowItems extends AbstractPacket {
     return "WindowItems{" +
             "windowId=" + windowId +
             ", items=" + items +
+            ", stateId=" + stateId +
             '}';
   }
 }

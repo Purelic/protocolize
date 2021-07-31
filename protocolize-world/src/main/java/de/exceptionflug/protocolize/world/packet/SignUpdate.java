@@ -53,6 +53,7 @@ public class SignUpdate extends AbstractPacket {
     MAPPING_SERVERBOUND.put(MINECRAFT_1_16_3, 0x2B);
     MAPPING_SERVERBOUND.put(MINECRAFT_1_16_4, 0x2B);
     MAPPING_SERVERBOUND.put(MINECRAFT_1_17, 0x2B);
+    MAPPING_SERVERBOUND.put(MINECRAFT_1_17_1, 0x2B);
 
     MAPPING_CLIENTBOUND.put(MINECRAFT_1_7_2, 0x33);
     MAPPING_CLIENTBOUND.put(MINECRAFT_1_7_6, 0x33);
@@ -61,8 +62,6 @@ public class SignUpdate extends AbstractPacket {
     MAPPING_CLIENTBOUND.put(MINECRAFT_1_9_1, 0x46);
     MAPPING_CLIENTBOUND.put(MINECRAFT_1_9_2, 0x46);
   }
-
-
 
   private BlockPosition position;
   private String[] lines;
